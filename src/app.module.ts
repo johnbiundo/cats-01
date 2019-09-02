@@ -8,9 +8,11 @@ import {
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CatsModule } from './cats/cats.module';
 import { CatsController } from './cats/cats.controller';
+import { ConnectionService } from './connection/connection.service';
 
 @Module({
   imports: [CatsModule],
+  providers: [ConnectionService],
 })
 export class AppModule
   implements NestModule, OnModuleDestroy, OnApplicationShutdown {
