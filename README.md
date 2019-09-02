@@ -10,4 +10,9 @@ test graceful shutdown
 
 To kill server, in console where it was started, use `Ctrl-C`
 
-`main.trace.ts` has connection tracking and detailed logging.  Swap it to `main.ts` to test.
+Scenarios to test:
+1. Just let it start, then kill, and observe logging.
+2. Start a request in one browser, kill server, observe
+3. Start a request in one browser, kill server, start a request in a second browser
+    - this should allow first request to complete, second get a 503 error, then shutdown when first request completes
+
