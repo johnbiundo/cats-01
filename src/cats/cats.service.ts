@@ -4,7 +4,10 @@ import {
   BeforeApplicationShutdown,
   Logger,
 } from '@nestjs/common';
+
 import { Cat } from './interfaces/cat.interface';
+import { RequestsService } from '../requests/requests.service';
+
 import * as moment from 'moment';
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -19,14 +22,22 @@ export class CatsService
   private openRequests: number = 0;
   private shutdownStartTime;
 
-  constructor() {
+  constructor(private readonly requestsService: RequestsService) {
     this.logger = new Logger('CatsService');
   }
 
   async serviceShutdown() {
     const now = moment(new Date());
     const elapsed = moment.duration(now.diff(this.shutdownStartTime));
-    if (this.openRequests === 0 || elapsed >= MAX_SHUTDOWN_ELAPSED) {
+    console.log(
+      'catsService - requestsCount: ',
+      this.requestsService.getRequestCount()
+    );
+    if (
+      this.requestsService.getRequestCount() === 0 ||
+      elapsed >= MAX_SHUTDOWN_ELAPSED
+    ) {
+      // if (this.openRequests === 0 || elapsed >= MAX_SHUTDOWN_ELAPSED) {
       this.logger.log('service quiesced.');
       return;
     } else {
