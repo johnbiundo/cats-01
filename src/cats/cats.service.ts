@@ -3,29 +3,38 @@ import {
   OnModuleDestroy,
   OnApplicationShutdown,
   BeforeApplicationShutdown,
+  Logger,
 } from '@nestjs/common';
 import { Cat } from './interfaces/cat.interface';
+
+const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 @Injectable()
 export class CatsService
   implements OnModuleDestroy, OnApplicationShutdown, BeforeApplicationShutdown {
+  private logger: Logger;
+
+  constructor() {
+    this.logger = new Logger('CatsService');
+  }
+
   onModuleDestroy() {
-    console.log('catsService: onModuleDestroy called');
+    this.logger.log('onModuleDestroy called');
   }
 
   async beforeApplicationShutdown(): Promise<void> {
-    console.log('catsService: beforeApplicationShutdown called');
+    this.logger.log('beforeApplicationShutdown called');
     return new Promise(resolve => {
-      console.log('starting catsService shutdown');
+      this.logger.log('starting shutdown...');
       setTimeout(() => {
-        console.log('completing catsService shutdown');
+        this.logger.log('shutdown complete...');
         resolve();
-      }, 7000);
+      }, 10000);
     });
   }
 
   onApplicationShutdown() {
-    console.log('catsService: onApplicationShutdown called');
+    this.logger.log('onApplicationShutdown called');
   }
 
   private readonly cats: Cat[] = [];
@@ -34,7 +43,8 @@ export class CatsService
     this.cats.push(cat);
   }
 
-  findAll(): Cat[] {
+  async findAll(): Promise<Cat[]> {
+    await sleep(10000);
     return this.cats;
   }
 }

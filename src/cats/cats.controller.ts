@@ -16,8 +16,6 @@ import { CatsService } from './cats.service';
 import { CreateCatDto } from './dto/create-cat.dto';
 import { Cat } from './interfaces/cat.interface';
 
-const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
-
 @Controller('cats')
 @UseGuards(RolesGuard)
 @UseInterceptors(LoggingInterceptor, TransformInterceptor)
@@ -32,14 +30,13 @@ export class CatsController {
 
   @Get()
   async findAll(): Promise<Cat[]> {
-    await sleep(40000);
     return this.catsService.findAll();
   }
 
   @Get(':id')
   findOne(
     @Param('id', new ParseIntPipe())
-    id,
+    id
   ) {
     // logic
   }

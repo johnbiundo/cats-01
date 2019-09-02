@@ -4,6 +4,7 @@ import {
   MiddlewareConsumer,
   OnModuleDestroy,
   OnApplicationShutdown,
+  Logger,
 } from '@nestjs/common';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CatsModule } from './cats/cats.module';
@@ -16,12 +17,18 @@ import { ConnectionService } from './connection/connection.service';
 })
 export class AppModule
   implements NestModule, OnModuleDestroy, OnApplicationShutdown {
+  private logger: Logger;
+
+  constructor() {
+    this.logger = new Logger('AppModule');
+  }
+
   onModuleDestroy() {
-    console.log('AppModule: onModuleDestroy called');
+    this.logger.log('onModuleDestroy called');
   }
 
   onApplicationShutdown() {
-    console.log('AppModule: onApplicationShutdown called');
+    this.logger.log('onApplicationShutdown called');
   }
 
   configure(consumer: MiddlewareConsumer) {
