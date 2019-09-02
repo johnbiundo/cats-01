@@ -18,6 +18,9 @@ interface Connection {
   conn: Socket;
 }
 
+const html503 =
+  '\n<html><body><h1>Sorry, the server is unavailable at this time.</h1><body></html>\n';
+
 @Injectable()
 export class ConnectionService
   implements
@@ -78,9 +81,7 @@ export class ConnectionService
         connection.write('HTTP/1.1 503 Service Unavailable\n');
         connection.write('Connection: close\n');
         connection.write('Content-Type: text/html\n');
-        connection.write(
-          '\n<html><body><h1>Sorry, the server is unavailable at this time.</h1><body></html>\n'
-        );
+        connection.write(html503);
         connection.end();
       } else {
         this.connId++;
