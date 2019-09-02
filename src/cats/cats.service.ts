@@ -1,40 +1,67 @@
 import {
   Injectable,
-  OnModuleDestroy,
   OnApplicationShutdown,
   BeforeApplicationShutdown,
   Logger,
 } from '@nestjs/common';
 import { Cat } from './interfaces/cat.interface';
+import * as moment from 'moment';
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+const MAX_SHUTDOWN_ELAPSED = moment.duration(20000);
+
 @Injectable()
 export class CatsService
-  implements OnModuleDestroy, OnApplicationShutdown, BeforeApplicationShutdown {
+  implements OnApplicationShutdown, BeforeApplicationShutdown {
   private logger: Logger;
+
+  private openRequests: number = 0;
+  private shutdownStartTime;
 
   constructor() {
     this.logger = new Logger('CatsService');
   }
 
-  onModuleDestroy() {
-    this.logger.log('onModuleDestroy called');
+  async serviceShutdown() {
+    const now = moment(new Date());
+    const elapsed = moment.duration(now.diff(this.shutdownStartTime));
+    if (this.openRequests === 0 || elapsed >= MAX_SHUTDOWN_ELAPSED) {
+      this.logger.log('service quiesced.');
+      return;
+    } else {
+      this.logger.log(
+        `awaiting service quiescence. waited ${moment
+          .utc(elapsed.asMilliseconds())
+          .format('mm:ss')} so far...`
+      );
+      await sleep(2000);
+      return await this.serviceShutdown();
+    }
   }
 
   async beforeApplicationShutdown(): Promise<void> {
-    this.logger.log('beforeApplicationShutdown called');
-    return new Promise(resolve => {
+    this.shutdownStartTime = moment(new Date());
+    this.logger.log('beforeApplicationShutdown called.');
+    return new Promise(async resolve => {
       this.logger.log('starting shutdown...');
+      await this.serviceShutdown();
+      this.logger.log('shutdown complete');
+      resolve();
+      /*
+      if (this.openRequests === 0) {
+        resolve();
+      } else {}
       setTimeout(() => {
         this.logger.log('shutdown complete...');
         resolve();
       }, 10000);
+      */
     });
   }
 
   onApplicationShutdown() {
-    this.logger.log('onApplicationShutdown called');
+    this.logger.log('onApplicationShutdown called.');
   }
 
   private readonly cats: Cat[] = [];
@@ -44,7 +71,9 @@ export class CatsService
   }
 
   async findAll(): Promise<Cat[]> {
-    await sleep(10000);
+    this.openRequests++;
+    await sleep(15000);
+    this.openRequests--;
     return this.cats;
   }
 }
